@@ -819,10 +819,6 @@ else:
         and day_df["Two_Hour_Ahead_Forecast"].notna().any()
     )
 
-    st.markdown(
-        f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
-        f"({cumulative_2hr_start} to {cumulative_2hr_end})"
-    )
     twohr_metric_col1, twohr_metric_col2, twohr_metric_col3 = st.columns(3)
 
     if selected_day_has_2hr:
@@ -862,6 +858,11 @@ else:
                 cumulative_2hr_df["valid_time_ist"].dt.date.max()
             )
 
+            st.markdown(
+                f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
+                f"({cumulative_2hr_start} to {cumulative_2hr_end})"
+            )
+            
             actual_cum_2hr = cumulative_2hr_df["Actual_GHI"]
             gfs_cum_2hr = cumulative_2hr_df["GFS_GHI"]
             daily_cum_2hr = cumulative_2hr_df["Daily_Forecast_GHI"]
