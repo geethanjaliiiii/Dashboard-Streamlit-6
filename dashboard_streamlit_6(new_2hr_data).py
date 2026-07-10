@@ -124,10 +124,9 @@ else:
 
 
 if day_df.empty:
-    st.warning("No data available for the selected date.")
+    st.stop()
 
 else:
-    st.success(f"Prediction available for {selected_date}")
 
     left_col, right_col = st.columns(2)
 
@@ -141,12 +140,18 @@ else:
 
     tick_times = day_df["valid_time_ist"].dt.strftime("%H:%M").tolist()
 
+    # ============================
+    # Dashboard Colors
+    # ============================
+    GFS_COLOR = "#76B7F2"             # Light blue
+    DAILY_FORECAST_COLOR = "#F28E2B"  # Orange
+    DAILY_FORECAST_FILL = "rgba(242,142,43,0.25)"
+    TWO_HOUR_COLOR = "#2CA02C"        # Green
+    ACTUAL_COLOR = "#636EFA"          # Blue 
+
     # =====================================================
     # FIRST ROW: DAILY FORECAST GHI ONLY
     # =====================================================
-
-    GFS_COLOR = "#636EFA"
-    TWO_HOUR_COLOR = "#76B7F2"
     
     fig1 = go.Figure()
 
@@ -155,10 +160,10 @@ else:
         y=day_df["Daily_Forecast_GHI"],
         mode="lines+markers",
         name="Daily Forecast GHI",
-        line=dict(color="#F05A5A", width=2),
-        marker=dict(color="#F05A5A"),
-        fill="tozeroy",
-        fillcolor="rgba(240, 90, 90, 0.25)"
+        line=dict(color=DAILY_FORECAST_COLOR, width=2),
+        marker=dict(color=DAILY_FORECAST_COLOR),
+         fill="tozeroy",
+        fillcolor=DAILY_FORECAST_FILL
     ))
 
     if has_two_hour_forecast:
@@ -176,7 +181,7 @@ else:
         pass
 
     fig1.update_layout(
-        title="Daily Forecast GHI",
+        title=f"Forecasted GHI for {selected_date}",,
         xaxis_title="Time",
         yaxis_title="GHI",
         height=450,
@@ -314,8 +319,9 @@ else:
                 y=day_df["Daily_Forecast_GHI"],
                 mode="lines+markers",
                 name="Daily Forecast GHI",
-                line=dict(color="red"),
-                marker=dict(color="red")
+                line=dict(color=DAILY_FORECAST_COLOR),
+                marker=dict(color=DAILY_FORECAST_COLOR)
+
             ))
     
             fig2.update_layout(
@@ -454,12 +460,6 @@ else:
             f"### 📈 Previous Day Performance Comparison ({previous_day})"
         )
 
-        # Colours
-        ACTUAL_COLOR = "#2E9D57"
-        GFS_COLOR = "#636EFA"
-        DAILY_FORECAST_COLOR = "red"
-        TWO_HOUR_COLOR_PREVIOUS = "red"
-
         # Common y-axis maximum
         prev_ymax = max(
             previous_df["Actual_GHI"].max(),
@@ -498,10 +498,7 @@ else:
                     y=previous_df["Actual_GHI"],
                     mode="lines+markers",
                     name="Actual GHI",
-                    line=dict(
-                        color=ACTUAL_COLOR,
-                        dash="dot"
-                    ),
+                    line=dict(color=ACTUAL_COLOR, dash="dot"),
                     marker=dict(color=ACTUAL_COLOR)
                 ))
 
@@ -515,7 +512,7 @@ else:
                     marker=dict(color=GFS_COLOR)
                 ))
 
-                # Daily Forecast — red
+                # Daily Forecast — orange
                 fig_prev1.add_trace(go.Scatter(
                     x=previous_df["valid_time_ist"],
                     y=previous_df["Daily_Forecast_GHI"],
@@ -526,7 +523,6 @@ else:
                 ))
 
                 fig_prev1.update_layout(
-                    title=None,
                     xaxis_title="Time",
                     yaxis_title="GHI",
                     height=430,
@@ -589,10 +585,7 @@ else:
                         y=previous_two_hour_df["Actual_GHI"],
                         mode="lines+markers",
                         name="Actual GHI",
-                        line=dict(
-                            color=ACTUAL_COLOR,
-                            dash="dot"
-                        ),
+                        line=dict(color=ACTUAL_COLOR, dash="dot"),
                         marker=dict(color=ACTUAL_COLOR)
                     ))
 
@@ -614,11 +607,8 @@ else:
                         ],
                         mode="lines+markers",
                         name="2-Hour Ahead Forecast",
-                        line=dict(
-                            color=TWO_HOUR_COLOR_PREVIOUS
-                        ),
-                        marker=dict(
-                            color=TWO_HOUR_COLOR_PREVIOUS
+                        line=dict(color=TWO_HOUR_COLOR),
+                        marker=dict(color=TWO_HOUR_COLOR)
                         )
                     ))
 
@@ -647,7 +637,6 @@ else:
                     )
 
                 fig_prev2.update_layout(
-                    title=None,
                     xaxis_title="Time",
                     yaxis_title="GHI",
                     height=430,
@@ -726,7 +715,7 @@ else:
         mape_after = ((actual - after).abs() / actual).mean() * 100
 
         st.markdown(
-            f"### 📊 Cumulative Performance of  Daily Forecast"
+            f"### 📊 Cumulative Performance of  Daily Forecast "
             f"({start_date} to {end_date})"
         )
 
