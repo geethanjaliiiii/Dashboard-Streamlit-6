@@ -1130,7 +1130,7 @@ else:
             st.markdown(
                 f"""
                 <h3 style="
-                    color:#E67E00;
+                    color:#FF3B30;
                     font-size:1.45rem;
                     margin-top:0;
                     margin-bottom:14px;
@@ -1148,14 +1148,8 @@ else:
                 value_color = row[2]
                 font_size = row[3]
 
-                border_style = (
-                    "border-top:1px solid rgba(128,128,128,0.35);"
-                    if row_number > 0
-                    else ""
-                )
-
                 metric_html = (
-                    f'<div style="{border_style}'
+                    f'<div style="'
                     f'padding-top:12px;'
                     f'padding-bottom:12px;">'
 
