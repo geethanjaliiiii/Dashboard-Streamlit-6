@@ -182,7 +182,7 @@ else:
 
     fig1.update_layout(
         title=f"Forecasted GHI for {selected_date}",
-        font=dict(size=24)
+        font=dict(size=24),
         xaxis_title="Time",
         yaxis_title="GHI",
         height=450,
