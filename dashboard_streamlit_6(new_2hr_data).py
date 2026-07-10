@@ -181,7 +181,7 @@ else:
         pass
 
     fig1.update_layout(
-        title=f"Forecasted GHI for {selected_date}",,
+        title=f"Forecasted GHI for {selected_date}",
         xaxis_title="Time",
         yaxis_title="GHI",
         height=450,
