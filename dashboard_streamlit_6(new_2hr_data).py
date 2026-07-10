@@ -738,7 +738,7 @@ else:
                 y=[mape_before, mape_after],
                 text=[round(mape_before, 2), round(mape_after, 2)],
                 textposition="auto",
-                marker_color=["steelblue", "red"]
+                marker_color=[GFS_COLOR, DAILY_FORECAST_COLOR]
             ))
 
             fig_mape.update_layout(
@@ -763,7 +763,7 @@ else:
                 y=[mae_before, mae_after],
                 text=[round(mae_before, 2), round(mae_after, 2)],
                 textposition="auto",
-                marker_color=["steelblue", "red"]
+                marker_color=[GFS_COLOR, DAILY_FORECAST_COLOR]
             ))
 
             fig_mae.update_layout(
@@ -788,7 +788,7 @@ else:
                 y=[rmse_before, rmse_after],
                 text=[round(rmse_before, 2), round(rmse_after, 2)],
                 textposition="auto",
-                marker_color=["steelblue", "red"]
+                marker_color=[GFS_COLOR, DAILY_FORECAST_COLOR]
             ))
 
             fig_rmse.update_layout(
