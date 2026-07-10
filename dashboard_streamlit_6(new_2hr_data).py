@@ -182,7 +182,7 @@ else:
 
     fig1.update_layout(
         title=dict(
-            text=f"Forecasted GHI ({selected_date})",
+            text=f"Forecasted GHI for {selected_date}",
             font=dict(size=24)     
         ),
         xaxis_title="Time",
@@ -1111,22 +1111,104 @@ else:
         & (overall_df["Actual_GHI"] > 50)
     ].copy()
 
+    # -----------------------------------------------------
+    # Helper function for metric cards
+    # -----------------------------------------------------
+
+    def show_metric_card(title, metric_rows):
+        """
+        metric_rows format:
+        [
+            (label, displayed_value, color, font_size),
+            ...
+        ]
+        """
+
+        with st.container(border=True):
+
+            # Same yellow-orange heading for MAPE, MAE and RMSE
+            st.markdown(
+                f"""
+                <h3 style="
+                    color:#e66a00;
+                    margin-top:0;
+                    margin-bottom:14px;
+                ">
+                    {title}
+                </h3>
+                """,
+                unsafe_allow_html=True
+            )
+
+            for row_number, (
+                label,
+                displayed_value,
+                value_color,
+                font_size
+            ) in enumerate(metric_rows):
+
+                top_border = (
+                    "border-top:1px solid rgba(128,128,128,0.35);"
+                    if row_number > 0
+                    else ""
+                )
+
+                st.markdown(
+                    dedent(
+                        f"""
+                        <div style="
+                            {top_border}
+                            padding-top:12px;
+                            padding-bottom:12px;
+                        ">
+                            <div style="
+                                font-size:0.92rem;
+                                font-weight:600;
+                                margin-bottom:3px;
+                            ">
+                                {label}
+                            </div>
+
+                            <div style="
+                                color:{value_color};
+                                font-size:{font_size};
+                                font-weight:750;
+                                line-height:1.15;
+                            ">
+                                {displayed_value}
+                            </div>
+                        </div>
+                        """
+                    ),
+                    unsafe_allow_html=True
+                )
+
     if not overall_df.empty:
 
         # =====================================================
         # DAILY FORECAST METRICS
         # =====================================================
 
+        daily_start_date = (
+            overall_df["valid_time_ist"].dt.date.min()
+        )
+
+        daily_end_date = (
+            overall_df["valid_time_ist"].dt.date.max()
+        )
+
         actual_all = overall_df["Actual_GHI"]
         gfs_all = overall_df["GFS_GHI"]
         daily_all = overall_df["Daily_Forecast_GHI"]
 
         overall_mape_before = (
-            ((actual_all - gfs_all).abs() / actual_all).mean() * 100
+            ((actual_all - gfs_all).abs() / actual_all).mean()
+            * 100
         )
 
         overall_mape_after = (
-            ((actual_all - daily_all).abs() / actual_all).mean() * 100
+            ((actual_all - daily_all).abs() / actual_all).mean()
+            * 100
         )
 
         overall_mae_before = (
@@ -1156,10 +1238,15 @@ else:
         with left_summary:
 
             with st.container(border=True):
+
                 st.markdown(
-                    "### 📈 Daily Forecast"
+                    f"### 📈 Daily Forecast "
+                    f"({daily_start_date} to {daily_end_date})"
                 )
-                st.caption(
+
+                # Normal text instead of st.caption, so it follows
+                # the active Streamlit text color.
+                st.markdown(
                     "Comparison of Original GFS and Daily Forecast GHI"
                 )
 
@@ -1167,105 +1254,63 @@ else:
 
             # ---------------- MAPE ----------------
             with k1:
-                with st.container(border=True):
-                    st.markdown(
-                        "<h3 style='color:#4c78d8;'>🎯 MAPE</h3>",
-                        unsafe_allow_html=True
-                    )
-
-                    st.metric(
-                        label="Before (GFS)",
-                        value=f"{overall_mape_before:.2f}%"
-                    )
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            color:#ff3b30;
-                            font-size:2rem;
-                            font-weight:700;
-                            margin-top:-8px;
-                        ">
-                            {overall_mape_after:.2f}%
-                        </div>
-                        <div style="
-                            font-size:0.9rem;
-                            opacity:0.75;
-                            margin-top:-4px;
-                        ">
-                            After (Daily Forecast)
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                show_metric_card(
+                    "🎯 MAPE",
+                    [
+                        (
+                            "Before (GFS)",
+                            f"{overall_mape_before:.2f}%",
+                            GFS_COLOR,
+                            "1.45rem"
+                        ),
+                        (
+                            "After (Daily Forecast)",
+                            f"{overall_mape_after:.2f}%",
+                            DAILY_FORECAST_COLOR,
+                            "2.20rem"
+                        )
+                    ]
+                )
 
             # ---------------- MAE ----------------
             with k2:
-                with st.container(border=True):
-                    st.markdown(
-                        "<h3 style='color:#2e9d57;'>📊 MAE</h3>",
-                        unsafe_allow_html=True
-                    )
-
-                    st.metric(
-                        label="Before (GFS)",
-                        value=f"{overall_mae_before:.2f}"
-                    )
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            color:#ff3b30;
-                            font-size:2rem;
-                            font-weight:700;
-                            margin-top:-8px;
-                        ">
-                            {overall_mae_after:.2f}
-                        </div>
-                        <div style="
-                            font-size:0.9rem;
-                            opacity:0.75;
-                            margin-top:-4px;
-                        ">
-                            After (Daily Forecast)
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                show_metric_card(
+                    "📊 MAE",
+                    [
+                        (
+                            "Before (GFS)",
+                            f"{overall_mae_before:.2f}",
+                            GFS_COLOR,
+                            "1.45rem"
+                        ),
+                        (
+                            "After (Daily Forecast)",
+                            f"{overall_mae_after:.2f}",
+                            DAILY_FORECAST_COLOR,
+                            "2.20rem"
+                        )
+                    ]
+                )
 
             # ---------------- RMSE ----------------
             with k3:
-                with st.container(border=True):
-                    st.markdown(
-                        "<h3 style='color:#8a4fd3;'>〽️ RMSE</h3>",
-                        unsafe_allow_html=True
-                    )
-
-                    st.metric(
-                        label="Before (GFS)",
-                        value=f"{overall_rmse_before:.2f}"
-                    )
-
-                    st.markdown(
-                        f"""
-                        <div style="
-                            color:#ff3b30;
-                            font-size:2rem;
-                            font-weight:700;
-                            margin-top:-8px;
-                        ">
-                            {overall_rmse_after:.2f}
-                        </div>
-                        <div style="
-                            font-size:0.9rem;
-                            opacity:0.75;
-                            margin-top:-4px;
-                        ">
-                            After (Daily Forecast)
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                show_metric_card(
+                    "〽️ RMSE",
+                    [
+                        (
+                            "Before (GFS)",
+                            f"{overall_rmse_before:.2f}",
+                            GFS_COLOR,
+                            "1.45rem"
+                        ),
+                        (
+                            "After (Daily Forecast)",
+                            f"{overall_rmse_after:.2f}",
+                            DAILY_FORECAST_COLOR,
+                            "2.20rem"
+                        )
+                    ]
+                )
 
         # =====================================================
         # RIGHT: 2-HOUR AHEAD PERFORMANCE
@@ -1279,30 +1324,57 @@ else:
 
             if not two_hour_metrics_df.empty:
 
+                twohr_start_date = (
+                    two_hour_metrics_df[
+                        "valid_time_ist"
+                    ].dt.date.min()
+                )
+
+                twohr_end_date = (
+                    two_hour_metrics_df[
+                        "valid_time_ist"
+                    ].dt.date.max()
+                )
+
                 actual_2hr = two_hour_metrics_df["Actual_GHI"]
                 gfs_2hr = two_hour_metrics_df["GFS_GHI"]
-                daily_2hr = two_hour_metrics_df["Daily_Forecast_GHI"]
+
+                daily_2hr = two_hour_metrics_df[
+                    "Daily_Forecast_GHI"
+                ]
+
                 forecast_2hr = two_hour_metrics_df[
                     "Two_Hour_Ahead_Forecast"
                 ]
 
-                # MAPE
+                # ---------------- MAPE ----------------
+
                 mape_gfs = (
-                    ((actual_2hr - gfs_2hr).abs() / actual_2hr).mean()
+                    (
+                        (actual_2hr - gfs_2hr).abs()
+                        / actual_2hr
+                    ).mean()
                     * 100
                 )
 
                 mape_daily = (
-                    ((actual_2hr - daily_2hr).abs() / actual_2hr).mean()
+                    (
+                        (actual_2hr - daily_2hr).abs()
+                        / actual_2hr
+                    ).mean()
                     * 100
                 )
 
                 mape_2hr = (
-                    ((actual_2hr - forecast_2hr).abs() / actual_2hr).mean()
+                    (
+                        (actual_2hr - forecast_2hr).abs()
+                        / actual_2hr
+                    ).mean()
                     * 100
                 )
 
-                # MAE
+                # ---------------- MAE ----------------
+
                 mae_gfs = (
                     (actual_2hr - gfs_2hr).abs().mean()
                 )
@@ -1315,7 +1387,8 @@ else:
                     (actual_2hr - forecast_2hr).abs().mean()
                 )
 
-                # RMSE
+                # ---------------- RMSE ----------------
+
                 rmse_gfs = np.sqrt(
                     ((actual_2hr - gfs_2hr) ** 2).mean()
                 )
@@ -1329,11 +1402,14 @@ else:
                 )
 
                 with st.container(border=True):
+
                     st.markdown(
-                        "### 🕒 2-Hour Ahead Forecast"
+                        f"### 🕒 2-Hour Ahead Forecast "
+                        f"({twohr_start_date} to {twohr_end_date})"
                     )
-                    st.caption(
-                        "Calculated only for rows where "
+
+                    st.markdown(
+                        "Calculated only for rows where the "
                         "2-Hour Ahead Forecast is available"
                     )
 
@@ -1341,148 +1417,85 @@ else:
 
                 # ---------------- MAPE ----------------
                 with h1:
-                    with st.container(border=True):
-                        st.markdown(
-                            "<h3 style='color:#e66a00;'>🎯 MAPE</h3>",
-                            unsafe_allow_html=True
-                        )
-
-                        st.metric(
-                            label="Actual vs GFS",
-                            value=f"{mape_gfs:.2f}%"
-                        )
-
-                        st.markdown(
-                            f"""
-                            <div style="
-                                color:#2e9d57;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {mape_daily:.2f}%
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                                margin-bottom:16px;
-                            ">
-                                Actual vs Daily Forecast
-                            </div>
-
-                            <div style="
-                                color:#e66a00;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {mape_2hr:.2f}%
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                            ">
-                                Actual vs 2-Hour Ahead
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                    show_metric_card(
+                        "🎯 MAPE",
+                        [
+                            (
+                                "Actual vs GFS",
+                                f"{mape_gfs:.2f}%",
+                                GFS_COLOR,
+                                "1.35rem"
+                            ),
+                            (
+                                "Actual vs Daily Forecast",
+                                f"{mape_daily:.2f}%",
+                                DAILY_FORECAST_COLOR,
+                                "1.75rem"
+                            ),
+                            (
+                                "Actual vs 2-Hour Ahead",
+                                f"{mape_2hr:.2f}%",
+                                TWO_HOUR_COLOR,
+                                "2.20rem"
+                            )
+                        ]
+                    )
 
                 # ---------------- MAE ----------------
                 with h2:
-                    with st.container(border=True):
-                        st.markdown(
-                            "<h3 style='color:#e66a00;'>📊 MAE</h3>",
-                            unsafe_allow_html=True
-                        )
-
-                        st.metric(
-                            label="Actual vs GFS",
-                            value=f"{mae_gfs:.2f}"
-                        )
-
-                        st.markdown(
-                            f"""
-                            <div style="
-                                color:#2e9d57;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {mae_daily:.2f}
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                                margin-bottom:16px;
-                            ">
-                                Actual vs Daily Forecast
-                            </div>
-
-                            <div style="
-                                color:#e66a00;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {mae_2hr:.2f}
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                            ">
-                                Actual vs 2-Hour Ahead
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                    show_metric_card(
+                        "📊 MAE",
+                        [
+                            (
+                                "Actual vs GFS",
+                                f"{mae_gfs:.2f}",
+                                GFS_COLOR,
+                                "1.35rem"
+                            ),
+                            (
+                                "Actual vs Daily Forecast",
+                                f"{mae_daily:.2f}",
+                                DAILY_FORECAST_COLOR,
+                                "1.75rem"
+                            ),
+                            (
+                                "Actual vs 2-Hour Ahead",
+                                f"{mae_2hr:.2f}",
+                                TWO_HOUR_COLOR,
+                                "2.20rem"
+                            )
+                        ]
+                    )
 
                 # ---------------- RMSE ----------------
                 with h3:
-                    with st.container(border=True):
-                        st.markdown(
-                            "<h3 style='color:#e66a00;'>〽️ RMSE</h3>",
-                            unsafe_allow_html=True
-                        )
-
-                        st.metric(
-                            label="Actual vs GFS",
-                            value=f"{rmse_gfs:.2f}"
-                        )
-
-                        st.markdown(
-                            f"""
-                            <div style="
-                                color:#2e9d57;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {rmse_daily:.2f}
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                                margin-bottom:16px;
-                            ">
-                                Actual vs Daily Forecast
-                            </div>
-
-                            <div style="
-                                color:#e66a00;
-                                font-size:1.75rem;
-                                font-weight:700;
-                            ">
-                                {rmse_2hr:.2f}
-                            </div>
-                            <div style="
-                                font-size:0.85rem;
-                                opacity:0.75;
-                            ">
-                                Actual vs 2-Hour Ahead
-                            </div>
-                            """,
-                            unsafe_allow_html=True
-                        )
+                    show_metric_card(
+                        "〽️ RMSE",
+                        [
+                            (
+                                "Actual vs GFS",
+                                f"{rmse_gfs:.2f}",
+                                GFS_COLOR,
+                                "1.35rem"
+                            ),
+                            (
+                                "Actual vs Daily Forecast",
+                                f"{rmse_daily:.2f}",
+                                DAILY_FORECAST_COLOR,
+                                "1.75rem"
+                            ),
+                            (
+                                "Actual vs 2-Hour Ahead",
+                                f"{rmse_2hr:.2f}",
+                                TWO_HOUR_COLOR,
+                                "2.20rem"
+                            )
+                        ]
+                    )
 
             else:
                 st.warning(
-                    "No valid 2-hour ahead forecast data is available "
+                    "No valid 2-hour-ahead forecast data is available "
                     "for overall performance."
                 )
 
