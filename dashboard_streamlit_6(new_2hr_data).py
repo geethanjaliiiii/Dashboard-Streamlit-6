@@ -460,7 +460,12 @@ else:
 
     else:
         st.markdown(
-            f"### 📈 Previous Day Performance Comparison ({previous_day})"
+            f"""
+            <h2 style="margin-top:20px; margin-bottom:10px;">
+                📈 Previous Day Performance Comparison ({previous_day})
+            </h2>
+            """,
+            unsafe_allow_html=True
         )
 
         # Common y-axis maximum
