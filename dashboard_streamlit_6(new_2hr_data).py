@@ -857,11 +857,6 @@ else:
             cumulative_2hr_end = (
                 cumulative_2hr_df["valid_time_ist"].dt.date.max()
             )
-
-            st.markdown(
-                f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
-                f"({cumulative_2hr_start} to {cumulative_2hr_end})"
-            )
             
             actual_cum_2hr = cumulative_2hr_df["Actual_GHI"]
             gfs_cum_2hr = cumulative_2hr_df["GFS_GHI"]
