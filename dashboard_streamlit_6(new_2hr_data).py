@@ -814,319 +814,280 @@ else:
     # Start of data through previous day
     # =====================================================
 
-    selected_day_has_2hr = (
-        not day_df.empty
-        and day_df["Two_Hour_Ahead_Forecast"].notna().any()
+    cumulative_2hr_df = df[
+        df["valid_time_ist"].dt.date <= previous_day
+    ].copy()
+
+    cumulative_2hr_df["hour"] = (
+        cumulative_2hr_df["valid_time_ist"].dt.hour
+        + cumulative_2hr_df["valid_time_ist"].dt.minute / 60
     )
 
-    twohr_metric_col1, twohr_metric_col2, twohr_metric_col3 = st.columns(3)
+    # Use only rows where all required values are available
+    cumulative_2hr_df = cumulative_2hr_df.dropna(
+        subset=[
+            "Actual_GHI",
+            "GFS_GHI",
+            "Daily_Forecast_GHI",
+            "Two_Hour_Ahead_Forecast"
+        ]
+    ).copy()
 
-    if selected_day_has_2hr:
+    cumulative_2hr_df = cumulative_2hr_df[
+        (cumulative_2hr_df["hour"] >= 6.5)
+        & (cumulative_2hr_df["hour"] <= 17.5)
+        & (cumulative_2hr_df["Actual_GHI"] > 50)
+    ].copy()
 
-        cumulative_2hr_df = df[
-            df["valid_time_ist"].dt.date <= previous_day
-        ].copy()
+    if not cumulative_2hr_df.empty:
 
-        cumulative_2hr_df["hour"] = (
-            cumulative_2hr_df["valid_time_ist"].dt.hour
-            + cumulative_2hr_df["valid_time_ist"].dt.minute / 60
+        cumulative_2hr_start = (
+            cumulative_2hr_df["valid_time_ist"]
+            .dt.date
+            .min()
         )
 
-        # Use only rows where all required values are available
-        cumulative_2hr_df = cumulative_2hr_df.dropna(
-            subset=[
-                "Actual_GHI",
-                "GFS_GHI",
-                "Daily_Forecast_GHI",
-                "Two_Hour_Ahead_Forecast"
-            ]
-        ).copy()
-
-        cumulative_2hr_df = cumulative_2hr_df[
-            (cumulative_2hr_df["hour"] >= 6.5)
-            & (cumulative_2hr_df["hour"] <= 17.5)
-            & (cumulative_2hr_df["Actual_GHI"] > 50)
-        ].copy()
-
-        if not cumulative_2hr_df.empty:
-
-            cumulative_2hr_start = (
-                cumulative_2hr_df["valid_time_ist"].dt.date.min()
-            )
-
-            cumulative_2hr_end = (
-                cumulative_2hr_df["valid_time_ist"].dt.date.max()
-            )
-            st.markdown(
-                f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
-                f"({cumulative_2hr_start} to {cumulative_2hr_end})"
-            )
-            actual_cum_2hr = cumulative_2hr_df["Actual_GHI"]
-            gfs_cum_2hr = cumulative_2hr_df["GFS_GHI"]
-            daily_cum_2hr = cumulative_2hr_df["Daily_Forecast_GHI"]
-            forecast_cum_2hr = cumulative_2hr_df[
-                "Two_Hour_Ahead_Forecast"
-            ]
-
-            # =====================================================
-            # MAPE
-            # =====================================================
-
-            cumulative_mape_gfs = (
-                (
-                    (actual_cum_2hr - gfs_cum_2hr).abs()
-                    / actual_cum_2hr
-                ).mean()
-                * 100
-            )
-
-            cumulative_mape_daily = (
-                (
-                    (actual_cum_2hr - daily_cum_2hr).abs()
-                    / actual_cum_2hr
-                ).mean()
-                * 100
-            )
-
-            cumulative_mape_2hr = (
-                (
-                    (actual_cum_2hr - forecast_cum_2hr).abs()
-                    / actual_cum_2hr
-                ).mean()
-                * 100
-            )
-
-            # =====================================================
-            # MAE
-            # =====================================================
-
-            cumulative_mae_gfs = (
-                actual_cum_2hr - gfs_cum_2hr
-            ).abs().mean()
-
-            cumulative_mae_daily = (
-                actual_cum_2hr - daily_cum_2hr
-            ).abs().mean()
-
-            cumulative_mae_2hr = (
-                actual_cum_2hr - forecast_cum_2hr
-            ).abs().mean()
-
-            # =====================================================
-            # RMSE
-            # =====================================================
-
-            cumulative_rmse_gfs = np.sqrt(
-                ((actual_cum_2hr - gfs_cum_2hr) ** 2).mean()
-            )
-
-            cumulative_rmse_daily = np.sqrt(
-                ((actual_cum_2hr - daily_cum_2hr) ** 2).mean()
-            )
-
-            cumulative_rmse_2hr = np.sqrt(
-                ((actual_cum_2hr - forecast_cum_2hr) ** 2).mean()
-            )
-
-            comparison_labels = [
-                "Before\n(GFS)",
-                "After\n(Daily)",
-                "After\n(2-Hour)"
-            ]
-
-            comparison_colors = [
-                GFS_COLOR,
-                DAILY_FORECAST_COLOR,
-                TWO_HOUR_COLOR
-            ]
-
-            # =====================================================
-            # CUMULATIVE 2-HOUR MAPE
-            # =====================================================
-
-            with twohr_metric_col1:
-                with st.container(border=True):
-
-                    fig_2hr_mape = go.Figure()
-
-                    fig_2hr_mape.add_trace(go.Bar(
-                        x=comparison_labels,
-                        y=[
-                            cumulative_mape_gfs,
-                            cumulative_mape_daily,
-                            cumulative_mape_2hr
-                        ],
-                        text=[
-                            f"{cumulative_mape_gfs:.2f}",
-                            f"{cumulative_mape_daily:.2f}",
-                            f"{cumulative_mape_2hr:.2f}"
-                        ],
-                        textposition="auto",
-                        marker_color=comparison_colors
-                    ))
-
-                    fig_2hr_mape.update_layout(
-                        title="MAPE",
-                        xaxis_title="Forecast Stage",
-                        yaxis_title="MAPE (%)",
-                        height=350,
-                        margin=dict(
-                            l=35,
-                            r=20,
-                            t=55,
-                            b=40
-                        ),
-                        showlegend=False
-                    )
-
-                    st.plotly_chart(
-                        fig_2hr_mape,
-                        use_container_width=True,
-                        key="cumulative_2hr_mape_chart"
-                    )
-
-            # =====================================================
-            # CUMULATIVE 2-HOUR MAE
-            # =====================================================
-
-            with twohr_metric_col2:
-                with st.container(border=True):
-
-                    fig_2hr_mae = go.Figure()
-
-                    fig_2hr_mae.add_trace(go.Bar(
-                        x=comparison_labels,
-                        y=[
-                            cumulative_mae_gfs,
-                            cumulative_mae_daily,
-                            cumulative_mae_2hr
-                        ],
-                        text=[
-                            f"{cumulative_mae_gfs:.2f}",
-                            f"{cumulative_mae_daily:.2f}",
-                            f"{cumulative_mae_2hr:.2f}"
-                        ],
-                        textposition="auto",
-                        marker_color=comparison_colors
-                    ))
-
-                    fig_2hr_mae.update_layout(
-                        title="MAE",
-                        xaxis_title="Forecast Stage",
-                        yaxis_title="MAE",
-                        height=350,
-                        margin=dict(
-                            l=35,
-                            r=20,
-                            t=55,
-                            b=40
-                        ),
-                        showlegend=False
-                    )
-
-                    st.plotly_chart(
-                        fig_2hr_mae,
-                        use_container_width=True,
-                        key="cumulative_2hr_mae_chart"
-                    )
-
-            # =====================================================
-            # CUMULATIVE 2-HOUR RMSE
-            # =====================================================
-
-            with twohr_metric_col3:
-                with st.container(border=True):
-
-                    fig_2hr_rmse = go.Figure()
-
-                    fig_2hr_rmse.add_trace(go.Bar(
-                        x=comparison_labels,
-                        y=[
-                            cumulative_rmse_gfs,
-                            cumulative_rmse_daily,
-                            cumulative_rmse_2hr
-                        ],
-                        text=[
-                            f"{cumulative_rmse_gfs:.2f}",
-                            f"{cumulative_rmse_daily:.2f}",
-                            f"{cumulative_rmse_2hr:.2f}"
-                        ],
-                        textposition="auto",
-                        marker_color=comparison_colors
-                    ))
-
-                    fig_2hr_rmse.update_layout(
-                        title="RMSE",
-                        xaxis_title="Forecast Stage",
-                        yaxis_title="RMSE",
-                        height=350,
-                        margin=dict(
-                            l=35,
-                            r=20,
-                            t=55,
-                            b=40
-                        ),
-                        showlegend=False
-                    )
-
-                    st.plotly_chart(
-                        fig_2hr_rmse,
-                        use_container_width=True,
-                        key="cumulative_2hr_rmse_chart"
-                    )
-
-        else:
-            # Selected date has a 2-hour forecast, but there is no
-            # earlier cumulative 2-hour data through the previous day.
-
-            with twohr_metric_col1:
-                with st.container(border=True):
-                    st.markdown("### MAPE")
-                    st.warning(
-                        "Cumulative 2-hour-ahead forecast data "
-                        "is not available through the previous day."
-                    )
-
-            with twohr_metric_col2:
-                with st.container(border=True):
-                    st.markdown("### MAE")
-                    st.warning(
-                        "Cumulative 2-hour-ahead forecast data "
-                        "is not available through the previous day."
-                    )
-
-            with twohr_metric_col3:
-                with st.container(border=True):
-                    st.markdown("### RMSE")
-                    st.warning(
-                        "Cumulative 2-hour-ahead forecast data "
-                        "is not available through the previous day."
-                    )
-
-    else:
-        # The selected date itself has no 2-hour-ahead forecast.
-
-        unavailable_message = (
-            f"No 2-hour-ahead forecast is available on "
-            f"{selected_date}. Therefore, cumulative 2-hour-ahead "
-            f"performance is not displayed."
+        cumulative_2hr_end = (
+            cumulative_2hr_df["valid_time_ist"]
+            .dt.date
+            .max()
         )
+
+        st.markdown(
+            f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
+            f"({cumulative_2hr_start} to {cumulative_2hr_end})"
+        )
+
+        actual_cum_2hr = cumulative_2hr_df["Actual_GHI"]
+        gfs_cum_2hr = cumulative_2hr_df["GFS_GHI"]
+        daily_cum_2hr = cumulative_2hr_df[
+            "Daily_Forecast_GHI"
+        ]
+        forecast_cum_2hr = cumulative_2hr_df[
+            "Two_Hour_Ahead_Forecast"
+        ]
+
+        # =====================================================
+        # MAPE
+        # =====================================================
+
+        cumulative_mape_gfs = (
+            (
+                (actual_cum_2hr - gfs_cum_2hr).abs()
+                / actual_cum_2hr
+            ).mean()
+            * 100
+        )
+
+        cumulative_mape_daily = (
+            (
+                (actual_cum_2hr - daily_cum_2hr).abs()
+                / actual_cum_2hr
+            ).mean()
+            * 100
+        )
+
+        cumulative_mape_2hr = (
+            (
+                (actual_cum_2hr - forecast_cum_2hr).abs()
+                / actual_cum_2hr
+            ).mean()
+            * 100
+        )
+
+        # =====================================================
+        # MAE
+        # =====================================================
+
+        cumulative_mae_gfs = (
+            actual_cum_2hr - gfs_cum_2hr
+        ).abs().mean()
+
+        cumulative_mae_daily = (
+            actual_cum_2hr - daily_cum_2hr
+        ).abs().mean()
+
+        cumulative_mae_2hr = (
+            actual_cum_2hr - forecast_cum_2hr
+        ).abs().mean()
+
+        # =====================================================
+        # RMSE
+        # =====================================================
+
+        cumulative_rmse_gfs = np.sqrt(
+            ((actual_cum_2hr - gfs_cum_2hr) ** 2).mean()
+        )
+
+        cumulative_rmse_daily = np.sqrt(
+            ((actual_cum_2hr - daily_cum_2hr) ** 2).mean()
+        )
+
+        cumulative_rmse_2hr = np.sqrt(
+            ((actual_cum_2hr - forecast_cum_2hr) ** 2).mean()
+        )
+
+        comparison_labels = [
+            "Before\n(GFS)",
+            "After\n(Daily)",
+            "After\n(2-Hour)"
+        ]
+
+        comparison_colors = [
+            GFS_COLOR,
+            DAILY_FORECAST_COLOR,
+            TWO_HOUR_COLOR
+        ]
+
+        twohr_metric_col1, twohr_metric_col2, twohr_metric_col3 = (
+            st.columns(3)
+        )
+
+        # =====================================================
+        # CUMULATIVE 2-HOUR MAPE
+        # =====================================================
 
         with twohr_metric_col1:
             with st.container(border=True):
-                st.markdown("### MAPE")
-                st.warning(unavailable_message)
+
+                fig_2hr_mape = go.Figure()
+
+                fig_2hr_mape.add_trace(go.Bar(
+                    x=comparison_labels,
+                    y=[
+                        cumulative_mape_gfs,
+                        cumulative_mape_daily,
+                        cumulative_mape_2hr
+                    ],
+                    text=[
+                        f"{cumulative_mape_gfs:.2f}",
+                        f"{cumulative_mape_daily:.2f}",
+                        f"{cumulative_mape_2hr:.2f}"
+                    ],
+                    textposition="auto",
+                    marker_color=comparison_colors
+                ))
+
+                fig_2hr_mape.update_layout(
+                    title="MAPE",
+                    xaxis_title="Forecast Stage",
+                    yaxis_title="MAPE (%)",
+                    height=350,
+                    margin=dict(
+                        l=35,
+                        r=20,
+                        t=55,
+                        b=40
+                    ),
+                    showlegend=False
+                )
+
+                st.plotly_chart(
+                    fig_2hr_mape,
+                    use_container_width=True,
+                    key="cumulative_2hr_mape_chart"
+                )
+
+        # =====================================================
+        # CUMULATIVE 2-HOUR MAE
+        # =====================================================
 
         with twohr_metric_col2:
             with st.container(border=True):
-                st.markdown("### MAE")
-                st.warning(unavailable_message)
+
+                fig_2hr_mae = go.Figure()
+
+                fig_2hr_mae.add_trace(go.Bar(
+                    x=comparison_labels,
+                    y=[
+                        cumulative_mae_gfs,
+                        cumulative_mae_daily,
+                        cumulative_mae_2hr
+                    ],
+                    text=[
+                        f"{cumulative_mae_gfs:.2f}",
+                        f"{cumulative_mae_daily:.2f}",
+                        f"{cumulative_mae_2hr:.2f}"
+                    ],
+                    textposition="auto",
+                    marker_color=comparison_colors
+                ))
+
+                fig_2hr_mae.update_layout(
+                    title="MAE",
+                    xaxis_title="Forecast Stage",
+                    yaxis_title="MAE",
+                    height=350,
+                    margin=dict(
+                        l=35,
+                        r=20,
+                        t=55,
+                        b=40
+                    ),
+                    showlegend=False
+                )
+
+                st.plotly_chart(
+                    fig_2hr_mae,
+                    use_container_width=True,
+                    key="cumulative_2hr_mae_chart"
+                )
+
+        # =====================================================
+        # CUMULATIVE 2-HOUR RMSE
+        # =====================================================
 
         with twohr_metric_col3:
             with st.container(border=True):
-                st.markdown("### RMSE")
-                st.warning(unavailable_message)
-                
+
+                fig_2hr_rmse = go.Figure()
+
+                fig_2hr_rmse.add_trace(go.Bar(
+                    x=comparison_labels,
+                    y=[
+                        cumulative_rmse_gfs,
+                        cumulative_rmse_daily,
+                        cumulative_rmse_2hr
+                    ],
+                    text=[
+                        f"{cumulative_rmse_gfs:.2f}",
+                        f"{cumulative_rmse_daily:.2f}",
+                        f"{cumulative_rmse_2hr:.2f}"
+                    ],
+                    textposition="auto",
+                    marker_color=comparison_colors
+                ))
+
+                fig_2hr_rmse.update_layout(
+                    title="RMSE",
+                    xaxis_title="Forecast Stage",
+                    yaxis_title="RMSE",
+                    height=350,
+                    margin=dict(
+                        l=35,
+                        r=20,
+                        t=55,
+                        b=40
+                    ),
+                    showlegend=False
+                )
+
+                st.plotly_chart(
+                    fig_2hr_rmse,
+                    use_container_width=True,
+                    key="cumulative_2hr_rmse_chart"
+                )
+
+    else:
+        st.markdown(
+            f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
+            f"(Through {previous_day})"
+        )
+
+        st.warning(
+            "No valid 2-hour-ahead forecast data is available "
+            "from the beginning of the dataset through the previous day."
+        )
     # =====================================================
     # OVERALL FULL-DATA PERFORMANCE METRICS
     # =====================================================
