@@ -1088,6 +1088,7 @@ else:
             "No valid 2-hour-ahead forecast data is available "
             "from the beginning of the dataset through the previous day."
         )
+        
     # =====================================================
     # OVERALL FULL-DATA PERFORMANCE METRICS
     # =====================================================
@@ -1111,26 +1112,26 @@ else:
         & (overall_df["Actual_GHI"] > 50)
     ].copy()
 
-    # -----------------------------------------------------
-    # Helper function for metric cards
-    # -----------------------------------------------------
+    # =====================================================
+    # METRIC CARD FUNCTION
+    # =====================================================
 
     def show_metric_card(title, metric_rows):
         """
-        metric_rows format:
+        metric_rows:
         [
-            (label, displayed_value, color, font_size),
+            (label, displayed_value, value_color, font_size),
             ...
         ]
         """
 
         with st.container(border=True):
 
-            # Same yellow-orange heading for MAPE, MAE and RMSE
             st.markdown(
                 f"""
                 <h3 style="
-                    color:#e66a00;
+                    color:#E67E00;
+                    font-size:1.45rem;
                     margin-top:0;
                     margin-bottom:14px;
                 ">
@@ -1140,46 +1141,45 @@ else:
                 unsafe_allow_html=True
             )
 
-            for row_number, (
-                label,
-                displayed_value,
-                value_color,
-                font_size
-            ) in enumerate(metric_rows):
+            for row_number, row in enumerate(metric_rows):
 
-                top_border = (
+                label = row[0]
+                displayed_value = row[1]
+                value_color = row[2]
+                font_size = row[3]
+
+                border_style = (
                     "border-top:1px solid rgba(128,128,128,0.35);"
                     if row_number > 0
                     else ""
                 )
 
-                st.markdown(
-                    dedent(
-                        f"""
-                        <div style="
-                            {top_border}
-                            padding-top:12px;
-                            padding-bottom:12px;
-                        ">
-                            <div style="
-                                font-size:0.92rem;
-                                font-weight:600;
-                                margin-bottom:3px;
-                            ">
-                                {label}
-                            </div>
+                metric_html = (
+                    f'<div style="{border_style}'
+                    f'padding-top:12px;'
+                    f'padding-bottom:12px;">'
 
-                            <div style="
-                                color:{value_color};
-                                font-size:{font_size};
-                                font-weight:750;
-                                line-height:1.15;
-                            ">
-                                {displayed_value}
-                            </div>
-                        </div>
-                        """
-                    ),
+                    f'<div style="'
+                    f'font-size:0.88rem;'
+                    f'font-weight:600;'
+                    f'margin-bottom:5px;'
+                    f'color:inherit;">'
+                    f'{label}'
+                    f'</div>'
+
+                    f'<div style="'
+                    f'color:{value_color};'
+                    f'font-size:{font_size};'
+                    f'font-weight:750;'
+                    f'line-height:1.15;">'
+                    f'{displayed_value}'
+                    f'</div>'
+
+                    f'</div>'
+                )
+
+                st.markdown(
+                    metric_html,
                     unsafe_allow_html=True
                 )
 
@@ -1232,7 +1232,7 @@ else:
         left_summary, right_summary = st.columns(2)
 
         # =====================================================
-        # LEFT: DAILY FORECAST PERFORMANCE
+        # LEFT SIDE: DAILY FORECAST
         # =====================================================
 
         with left_summary:
@@ -1240,14 +1240,32 @@ else:
             with st.container(border=True):
 
                 st.markdown(
-                    f"### 📈 Daily Forecast "
-                    f"({daily_start_date} to {daily_end_date})"
+                    f"""
+                    <div style="
+                        font-size:1.32rem;
+                        font-weight:700;
+                        line-height:1.25;
+                        white-space:nowrap;
+                        margin-bottom:8px;
+                    ">
+                        📈 Daily Forecast
+                        ({daily_start_date} to {daily_end_date})
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
 
-                # Normal text instead of st.caption, so it follows
-                # the active Streamlit text color.
                 st.markdown(
-                    "Comparison of Original GFS and Daily Forecast GHI"
+                    """
+                    <div style="
+                        font-size:0.92rem;
+                        color:inherit;
+                        margin-bottom:2px;
+                    ">
+                        Comparison of Actual GHI, GFS and Daily Forecast GHI
+                    </div>
+                    """,
+                    unsafe_allow_html=True
                 )
 
             k1, k2, k3 = st.columns(3)
@@ -1258,16 +1276,16 @@ else:
                     "🎯 MAPE",
                     [
                         (
-                            "Before (GFS)",
+                            "Actual vs GFS",
                             f"{overall_mape_before:.2f}%",
                             GFS_COLOR,
-                            "1.45rem"
+                            "1.40rem"
                         ),
                         (
-                            "After (Daily Forecast)",
+                            "Actual vs Daily Forecast",
                             f"{overall_mape_after:.2f}%",
                             DAILY_FORECAST_COLOR,
-                            "2.20rem"
+                            "2.15rem"
                         )
                     ]
                 )
@@ -1278,16 +1296,16 @@ else:
                     "📊 MAE",
                     [
                         (
-                            "Before (GFS)",
+                            "Actual vs GFS",
                             f"{overall_mae_before:.2f}",
                             GFS_COLOR,
-                            "1.45rem"
+                            "1.40rem"
                         ),
                         (
-                            "After (Daily Forecast)",
+                            "Actual vs Daily Forecast",
                             f"{overall_mae_after:.2f}",
                             DAILY_FORECAST_COLOR,
-                            "2.20rem"
+                            "2.15rem"
                         )
                     ]
                 )
@@ -1298,22 +1316,22 @@ else:
                     "〽️ RMSE",
                     [
                         (
-                            "Before (GFS)",
+                            "Actual vs GFS",
                             f"{overall_rmse_before:.2f}",
                             GFS_COLOR,
-                            "1.45rem"
+                            "1.40rem"
                         ),
                         (
-                            "After (Daily Forecast)",
+                            "Actual vs Daily Forecast",
                             f"{overall_rmse_after:.2f}",
                             DAILY_FORECAST_COLOR,
-                            "2.20rem"
+                            "2.15rem"
                         )
                     ]
                 )
 
         # =====================================================
-        # RIGHT: 2-HOUR AHEAD PERFORMANCE
+        # RIGHT SIDE: 2-HOUR-AHEAD FORECAST
         # =====================================================
 
         with right_summary:
@@ -1336,18 +1354,27 @@ else:
                     ].dt.date.max()
                 )
 
-                actual_2hr = two_hour_metrics_df["Actual_GHI"]
-                gfs_2hr = two_hour_metrics_df["GFS_GHI"]
+                actual_2hr = (
+                    two_hour_metrics_df["Actual_GHI"]
+                )
 
-                daily_2hr = two_hour_metrics_df[
-                    "Daily_Forecast_GHI"
-                ]
+                gfs_2hr = (
+                    two_hour_metrics_df["GFS_GHI"]
+                )
 
-                forecast_2hr = two_hour_metrics_df[
-                    "Two_Hour_Ahead_Forecast"
-                ]
+                daily_2hr = (
+                    two_hour_metrics_df["Daily_Forecast_GHI"]
+                )
 
-                # ---------------- MAPE ----------------
+                forecast_2hr = (
+                    two_hour_metrics_df[
+                        "Two_Hour_Ahead_Forecast"
+                    ]
+                )
+
+                # =====================================================
+                # MAPE
+                # =====================================================
 
                 mape_gfs = (
                     (
@@ -1373,7 +1400,9 @@ else:
                     * 100
                 )
 
-                # ---------------- MAE ----------------
+                # =====================================================
+                # MAE
+                # =====================================================
 
                 mae_gfs = (
                     (actual_2hr - gfs_2hr).abs().mean()
@@ -1387,7 +1416,9 @@ else:
                     (actual_2hr - forecast_2hr).abs().mean()
                 )
 
-                # ---------------- RMSE ----------------
+                # =====================================================
+                # RMSE
+                # =====================================================
 
                 rmse_gfs = np.sqrt(
                     ((actual_2hr - gfs_2hr) ** 2).mean()
@@ -1404,13 +1435,33 @@ else:
                 with st.container(border=True):
 
                     st.markdown(
-                        f"### 🕒 2-Hour Ahead Forecast "
-                        f"({twohr_start_date} to {twohr_end_date})"
+                        f"""
+                        <div style="
+                            font-size:1.32rem;
+                            font-weight:700;
+                            line-height:1.25;
+                            white-space:nowrap;
+                            margin-bottom:8px;
+                        ">
+                            🕒 2-Hour Ahead Forecast
+                            ({twohr_start_date} to {twohr_end_date})
+                        </div>
+                        """,
+                        unsafe_allow_html=True
                     )
 
                     st.markdown(
-                        "Calculated only for rows where the "
-                        "2-Hour Ahead Forecast is available"
+                        """
+                        <div style="
+                            font-size:0.92rem;
+                            color:inherit;
+                            margin-bottom:2px;
+                        ">
+                            Calculated only for rows where
+                            2-Hour Ahead Forecast is available
+                        </div>
+                        """,
+                        unsafe_allow_html=True
                     )
 
                 h1, h2, h3 = st.columns(3)
@@ -1424,19 +1475,19 @@ else:
                                 "Actual vs GFS",
                                 f"{mape_gfs:.2f}%",
                                 GFS_COLOR,
-                                "1.35rem"
+                                "1.30rem"
                             ),
                             (
                                 "Actual vs Daily Forecast",
                                 f"{mape_daily:.2f}%",
                                 DAILY_FORECAST_COLOR,
-                                "1.75rem"
+                                "1.70rem"
                             ),
                             (
                                 "Actual vs 2-Hour Ahead",
                                 f"{mape_2hr:.2f}%",
                                 TWO_HOUR_COLOR,
-                                "2.20rem"
+                                "2.15rem"
                             )
                         ]
                     )
@@ -1450,19 +1501,19 @@ else:
                                 "Actual vs GFS",
                                 f"{mae_gfs:.2f}",
                                 GFS_COLOR,
-                                "1.35rem"
+                                "1.30rem"
                             ),
                             (
                                 "Actual vs Daily Forecast",
                                 f"{mae_daily:.2f}",
                                 DAILY_FORECAST_COLOR,
-                                "1.75rem"
+                                "1.70rem"
                             ),
                             (
                                 "Actual vs 2-Hour Ahead",
                                 f"{mae_2hr:.2f}",
                                 TWO_HOUR_COLOR,
-                                "2.20rem"
+                                "2.15rem"
                             )
                         ]
                     )
@@ -1476,31 +1527,36 @@ else:
                                 "Actual vs GFS",
                                 f"{rmse_gfs:.2f}",
                                 GFS_COLOR,
-                                "1.35rem"
+                                "1.30rem"
                             ),
                             (
                                 "Actual vs Daily Forecast",
                                 f"{rmse_daily:.2f}",
                                 DAILY_FORECAST_COLOR,
-                                "1.75rem"
+                                "1.70rem"
                             ),
                             (
                                 "Actual vs 2-Hour Ahead",
                                 f"{rmse_2hr:.2f}",
                                 TWO_HOUR_COLOR,
-                                "2.20rem"
+                                "2.15rem"
                             )
                         ]
                     )
 
             else:
-                st.warning(
-                    "No valid 2-hour-ahead forecast data is available "
-                    "for overall performance."
-                )
+                with st.container(border=True):
+                    st.markdown(
+                        "### 🕒 2-Hour Ahead Forecast"
+                    )
+
+                    st.warning(
+                        "No valid 2-hour-ahead forecast data is "
+                        "available for overall performance."
+                    )
 
     else:
         st.warning(
             "Not enough valid data to calculate "
-            "complete-dataset performance metrics."
+            "overall forecast performance."
         )
