@@ -821,9 +821,8 @@ else:
 
     st.markdown(
         f"### 📊 Cumulative Performance of 2-Hour Ahead Forecast "
-        f"(Through {previous_day})"
+        f"({cumulative_2hr_start} to {cumulative_2hr_end})"
     )
-
     twohr_metric_col1, twohr_metric_col2, twohr_metric_col3 = st.columns(3)
 
     if selected_day_has_2hr:
