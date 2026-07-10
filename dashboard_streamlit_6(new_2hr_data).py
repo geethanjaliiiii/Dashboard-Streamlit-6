@@ -1236,7 +1236,7 @@ else:
                 st.markdown(
                     f"""
                     <div style="
-                        font-size:1.32rem;
+                        font-size:1.5rem;
                         font-weight:700;
                         line-height:1.25;
                         white-space:nowrap;
@@ -1431,7 +1431,7 @@ else:
                     st.markdown(
                         f"""
                         <div style="
-                            font-size:1.32rem;
+                            font-size:1.5rem;
                             font-weight:700;
                             line-height:1.25;
                             white-space:nowrap;
