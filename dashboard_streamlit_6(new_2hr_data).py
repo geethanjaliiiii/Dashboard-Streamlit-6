@@ -609,7 +609,7 @@ else:
                         name="2-Hour Ahead Forecast",
                         line=dict(color=TWO_HOUR_COLOR),
                         marker=dict(color=TWO_HOUR_COLOR)
-                        )
+                    
                     ))
 
                     prev2_tick_vals = (
