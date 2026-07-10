@@ -282,7 +282,7 @@ else:
             ).encode("utf-8")
     
             st.download_button(
-                label="⬇️ Download selected-day data",
+                label="⬇️ Download selected day data",
                 data=day_csv,
                 file_name=f"forecast_data_{selected_date}.csv",
                 mime="text/csv",
