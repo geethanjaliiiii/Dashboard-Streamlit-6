@@ -182,6 +182,7 @@ else:
 
     fig1.update_layout(
         title=f"Forecasted GHI for {selected_date}",
+        font=dict(size=24)
         xaxis_title="Time",
         yaxis_title="GHI",
         height=450,
@@ -858,7 +859,7 @@ else:
             ((actual_all - daily_all) ** 2).mean()
         )
 
-        st.markdown("## 📌 Performance Summary on Complete Dataset")
+        st.markdown("## 📌 Overall Forecast Performance")
 
         left_summary, right_summary = st.columns(2)
 
@@ -870,7 +871,7 @@ else:
 
             with st.container(border=True):
                 st.markdown(
-                    "### 📈 Daily Forecast GHI: Overall Forecast Performance"
+                    "### 📈 Daily Forecast"
                 )
                 st.caption(
                     "Comparison of Original GFS and Daily Forecast GHI"
@@ -1043,7 +1044,7 @@ else:
 
                 with st.container(border=True):
                     st.markdown(
-                        "### 🕒 2-Hour Ahead Forecast: Overall Performance"
+                        "### 🕒 2-Hour Ahead Forecast"
                     )
                     st.caption(
                         "Calculated only for rows where "
